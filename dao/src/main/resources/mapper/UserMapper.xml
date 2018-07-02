@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace：必须与对应的接口全类名一致 id:必须与对应接口的某个对应的方法名一致 -->
+<mapper namespace="cn.yks.hrmapp.dao.IUserDao">
+    <!--用户信息映射结果-->
+    <resultMap id="userResultMap" type="cn.yks.hrmapp.model.User">
+        <id property="id" column="ID"/>
+        <result property="userName" column="USER_NAME"/>
+        <result property="loginName" column="LOGIN_NAME"/>
+        <result property="password" column="PASSWORD"/>
+        <result property="status" column="STATUS"/>
+        <result property="createDate" column="CREATE_DATE"/>
+    </resultMap>
+
+    <!--根据用户名密码查询用户-->
+    <select id="selectUserByLoginName" parameterType="String"
+            resultMap="userResultMap">
+        SELECT *
+        FROM user_info u
+        WHERE
+            u.PASSWORD = #{password}
+            AND
+            u.LOGIN_NAME = #{loginName}
+    </select>
+
+    <!--根据用户id查询用户-->
+    <select id="selectUserById" parameterType="int"
+            resultMap="userResultMap">
+        SELECT *
+        FROM user_info u
+        WHERE u.ID = #{id}
+    </select>
+
+    <!--根据用户id删除用户-->
+    <delete id="deleteUserById" parameterType="int">
+        DELETE FROM user_info
+        WHERE ID = #{id}
+    </delete>
+
+    <!--更新用户-->
+    <update id="updateUser" parameterType="cn.yks.hrmapp.model.User">
+        UPDATE user_info u
+        <trim prefix="set" suffixOverrides=",">
+            <if test="userName != null">
+                u.USER_NAME = #{userName},
+            </if>
+            <if test="loginName != null">
+                u.LOGIN_NAME = #{loginName},
+            </if>
+            <if test="password != null">
+                u.PASSWORD = #{password},
+            </if>
+            <if test="status != null">
+                u.STATUS = #{status},
+            </if>
+            <if test="createDate != null">
+                u.CREATE_TIME = #{createDate},
+            </if>
+        </trim>
+        WHERE u.ID=#{id}
+    </update>
+
+    <!--sql片段，插入对象key值-->
+    <sql id="key">
+        LOGIN_NAME,
+        PASSWORD
+        <trim suffixOverrides="," prefix=",">
+            <if test="status != null">
+                STATUS,
+            </if>
+            <if test="userName != null">
+                USERNAME,
+            </if>
+        </trim>
+    </sql>
+
+    <!--sql片段，插入对象values值-->
+    <sql id="values">
+        #{loginName},
+        #{password}
+        <trim suffixOverrides="," prefix=",">
+            <if test="status != null">
+                #{status},
+            </if>
+            <if test="userName != null">
+                #{userName},
+            </if>
+        </trim>
+    </sql>
+
+    <!--动态插入用户-->
+    <insert id="saveUser" parameterType="cn.yks.hrmapp.model.User"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_info(<include refid="key"/>) VALUES (<include refid="values"/>)
+    </insert>
+
+    <!--查询符合条件的用户总数-->
+    <select id="countUser" parameterType="Map"
+            resultType="int">
+        SELECT count(*)
+        FROM user_info u
+        <where>
+            <trim suffixOverrides="and">
+                <if test="id != null">
+                    u.ID = #{id} and
+                </if>
+                <if test="userName != null">
+                    u.USER_NAME like CONCAT('%',#{userName},'%') and
+                </if>
+                <if test="loginName != null">
+                    u.LOGIN_NAME = #{loginName} and
+                </if>
+                <if test="password != null">
+                    u.PASSWORD = #{password} and
+                </if>
+                <if test="status != null">
+                    u.STATUS = #{status} and
+                </if>
+                <if test="createDate != null">
+                    u.CREATE_DATE = #{createDate} and
+                </if>
+            </trim>
+        </where>
+    </select>
+
+    <!--用户分页查询-->
+    <select id="selectUserByPage" parameterType="cn.yks.hrmapp.model.User"
+            resultMap="userResultMap">
+        SELECT *
+        FROM user_info u
+        <where>
+            <trim suffixOverrides="and">
+                <if test="id != null">
+                    u.ID = #{id} and
+                </if>
+                <if test="userName != null">
+                    u.USER_NAME like CONCAT('%',#{userName},'%') and
+                </if>
+                <if test="loginName != null">
+                    u.LOGIN_NAME = #{loginName} and
+                </if>
+                <if test="password != null">
+                    u.PASSWORD = #{password} and
+                </if>
+                <if test="status != null">
+                    u.STATUS = #{status} and
+                </if>
+                <if test="createDate != null">
+                    u.CREATE_DATE = #{createDate} and
+                </if>
+            </trim>
+        </where>
+    </select>
+
+</mapper>

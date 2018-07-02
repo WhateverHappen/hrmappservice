@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace：必须与对应的接口全类名一致 id:必须与对应接口的某个对应的方法名一致 -->
+<mapper namespace="cn.yks.hrmapp.model.Job">
+    <!--工作信息映射结果-->
+    <resultMap id="jobResultMap" type="cn.yks.hrmapp.model.Job">
+        <id property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+        <result property="remark" column="REMARK"/>
+    </resultMap>
+
+    <!--根据工作id查询工作信息-->
+    <select id="selectJobById" parameterType="int"
+            resultMap="jobResultMap">
+        SELECT *
+        FROM job_info
+        WHERE ID = #{id}
+    </select>
+
+    <!--查询所有工作信息-->
+    <select id="selectAllJob" resultMap="jobResultMap">
+        SELECT *
+        FROM job_info
+    </select>
+
+    <!--统计符合参数的工作数量-->
+    <select id="countJob" parameterType="map"
+            resultType="int">
+        SELECT count(*)
+        FROM job_info
+        <where>
+            <trim suffixOverrides="and">
+                <if test="name != null">
+                    d.NAME = #{name} and
+                </if>
+                <if test="remark != null">
+                    d.REMARK = #{remark} and
+                </if>
+            </trim>
+        </where>
+    </select>
+
+    <!--根据id删除工作-->
+    <delete id="deleteJobById" parameterType="int">
+        DELETE FROM job_info
+        WHERE ID = #{id}
+    </delete>
+
+    <!--sql片段，插入对象key值-->
+    <sql id="key">
+        NAME
+        <trim suffixOverrides="," prefix=",">
+            <if test="remark != null">
+                REMARK,
+            </if>
+        </trim>
+    </sql>
+
+    <!--sql片段，插入对象values值-->
+    <sql id="values">
+        #{name}
+        <trim suffixOverrides="," prefix=",">
+            <if test="remark != null">
+                #{remark},
+            </if>
+        </trim>
+    </sql>
+
+    <!--保存工作信息-->
+    <insert id="saveJob" parameterType="cn.yks.hrmapp.model.Job"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO job_info(<include refid="key"/>) VALUES (<include refid="values"/>)
+    </insert>
+
+    <!--更新工作信息-->
+    <update id="updateJob" parameterType="cn.yks.hrmapp.model.Job">
+        UPDATE job_info j
+        <trim prefix="set" suffixOverrides=",">
+            <if test="name != null">
+                j.NAME = #{name},
+            </if>
+            <if test="remark != null">
+                j.REMARK = #{remark},
+            </if>
+        </trim>
+        WHERE j.ID = #{id}
+    </update>
+</mapper>

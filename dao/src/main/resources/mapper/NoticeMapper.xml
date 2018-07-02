@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace：必须与对应的接口全类名一致 id:必须与对应接口的某个对应的方法名一致 -->
+<mapper namespace="cn.yks.hrmapp.model.Notice">
+    <!--用户信息映射结果-->
+    <resultMap id="userResultMap" type="cn.yks.hrmapp.model.User">
+        <id property="id" column="ID"/>
+        <result property="userName" column="USER_NAME"/>
+        <result property="loginName" column="LOGIN_NAME"/>
+        <result property="password" column="PASSWORD"/>
+        <result property="status" column="STATUS"/>
+        <result property="createDate" column="CREATE_DATE"/>
+    </resultMap>
+
+    <!--公告信息映射结果-->
+    <resultMap id="noticeResultMap" type="cn.yks.hrmapp.model.Notice">
+        <id property="id" column="ID"/>
+        <result property="title" column="TITLE"/>
+        <result property="content" column="CONTENT"/>
+        <result property="createDate" column="CREATE_DATE"/>
+        <association property="user" resultMap="userResultMap"/>
+    </resultMap>
+
+    <!--分页查询公告信息-->
+    <select id="seelctNoticeByPage" parameterType="cn.yks.hrmapp.model.Notice"
+            resultMap="noticeResultMap">
+        SELECT *
+        FROM notice_info n
+        <where>
+            <trim suffixOverrides="and">
+                <if test="param.title != null">
+                    n.TITLE = #{param.title} and
+                </if>
+                <if test="param.content != null">
+                    n.CONTENT = #{param.content} and
+                </if>
+                <if test="param.createDate != null">
+                    n.CREATE_DATE = #{param.createDate} and
+                </if>
+                <if test="param.user != null">
+                    n.USER_ID = #{param.user.id} and
+                </if>
+            </trim>
+        </where>
+    </select>
+
+    <!--统计符合条件的公告数量-->
+    <select id="countNotice" parameterType="cn.yks.hrmapp.model.Notice"
+            resultType="int">
+        SELECT count(*)
+        FROM notice_info
+        <where>
+            <trim suffixOverrides="and">
+                <if test="title != null">
+                    n.TITLE = #{title} and
+                </if>
+                <if test="content != null">
+                    n.CONTENT = #{content} and
+                </if>
+                <if test="createDate != null">
+                    n.CREATE_DATE = #{createDate} and
+                </if>
+                <if test="user != null">
+                    n.USER_ID = #{user.id} and
+                </if>
+            </trim>
+        </where>
+    </select>
+
+    <!--根据id查询公告信息-->
+    <select id="selectNoticeById" parameterType="int"
+            resultMap="noticeResultMap">
+        SELECT *
+        FROM notice_info
+        WHERE ID = #{id}
+    </select>
+
+    <!--根据id删除公告信息-->
+    <delete id="deleteNoticeById" parameterType="int">
+        DELETE FROM notice_info
+        WHERE ID = #{id}
+    </delete>
+
+    <!--sql片段，插入对象key值-->
+    <sql id="key">
+        TITLE,
+        CONTENT
+        <trim suffixOverrides="," prefix=",">
+            <if test="createDate != null">
+                CREATE_DATE,
+            </if>
+            <if test="user != null">
+                USER_ID,
+            </if>
+        </trim>
+    </sql>
+
+    <!--sql片段，插入对象values值-->
+    <sql id="values">
+        #{title},
+        #{context}
+        <trim suffixOverrides="," prefix=",">
+            <if test="createDate != null">
+                #{createDate},
+            </if>
+            <if test="user != null">
+                #{user.id},
+            </if>
+        </trim>
+    </sql>
+
+    <!--保存公告信息-->
+    <insert id="saveNotice" parameterType="cn.yks.hrmapp.model.Notice"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO notice_info(<include refid="key"/>) VALUES (<include refid="values"/>)
+    </insert>
+
+    <!--更新公告信息-->
+    <update id="updateNotice" parameterType="cn.yks.hrmapp.model.Notice">
+        UPDATE notice_info n
+        <trim prefix="set" suffixOverrides=",">
+            <if test="title != null">
+                n.TITLE = #{title},
+            </if>
+            <if test="content != null">
+                n.CONTENT = #{content},
+            </if>
+            <if test="createDate != null">
+                n.CREATE_DATE = #{createDate},
+            </if>
+            <if test="user != null">
+                n.USER_ID = #{user.id},
+            </if>
+        </trim>
+        WHERE n.ID = #{id}
+    </update>
+</mapper>

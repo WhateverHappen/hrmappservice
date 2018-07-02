@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- 数据库信息加载 -->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+          destroy-method="close">
+        <property name="driverClassName" value="${driver}"/>
+        <property name="url" value="${url}"/>
+        <property name="username" value="${username}"/>
+        <property name="password" value="${password}"/>
+        <!--initialSize: 初始化连接 -->
+        <property name="initialSize" value="${initialSize}"/>
+        <!--maxIdle: 最大空闲连接 -->
+        <property name="maxIdle" value="${maxIdle}"/>
+        <!--minIdle: 最小空闲连接 -->
+        <property name="minIdle" value="${minIdle}"/>
+        <!--maxActive: 最大连接数量 -->
+        <property name="maxActive" value="${maxActive}"/>
+        <!--removeAbandoned: 是否自动回收超时连接 -->
+        <!--<property name="removeAbandoned" value="${removeAbandoned}" />-->
+        <!--removeAbandonedTimeout: 超时时间(以秒数为单位) -->
+        <property name="removeAbandonedTimeout" value="${removeAbandonedTimeout}"/>
+        <!--maxWait: 超时等待时间以毫秒为单位 6000毫秒/1000等于6秒 -->
+        <property name="maxWait" value="${maxWait}"/>
+        <!--<property name="testOnBorrow" value="${testOnBorrow}" />
+        <property name="testWhileIdle" value="${testWhileIdle}" />-->
+    </bean>
+
+    <!-- 2. mybatis的SqlSession的工厂: SqlSessionFactoryBean dataSource:引用数据源 MyBatis定义数据源,同意加载配置 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <!-- mybatis的全局配置文件 -->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!-- 指定mapper的sql配置文件位置 -->
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
+    </bean>
+
+    <!-- 3. mybatis自动扫描加载Sql映射文件/接口 : MapperScannerConfigurer sqlSessionFactory
+        basePackage:指定sql映射文件/接口所在的包（自动扫描） -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="cn.yks.hrmapp.dao"></property>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+    <!-- 4. 事务管理 : DataSourceTransactionManager dataSource:引用上面定义的数据源 -->
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+    <!-- 5. 使用注解事务 transaction-manager：引用上面定义的事务管理器 -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <!-- 使用声明式事务，通过AOP实现 -->
+    <aop:config proxy-target-class="true">
+        <!-- 配置切入点 -->
+        <aop:pointcut id="txPointCut"
+                      expression="execution(* cn.yks.hrmapp.service.impl.*.*(..))"/>
+        <!-- 配置切面 -->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCut"/>
+    </aop:config>
+
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="add*" propagation="REQUIRED" rollback-for="Throwable"/>
+            <tx:method name="remove*" propagation="REQUIRED" rollback-for="Throwable"/>
+            <tx:method name="modify*" propagation="REQUIRED" rollback-for="Throwable"/>
+        </tx:attributes>
+    </tx:advice>
+</beans>

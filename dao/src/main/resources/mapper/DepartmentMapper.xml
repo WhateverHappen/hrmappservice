@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace：必须与对应的接口全类名一致 id:必须与对应接口的某个对应的方法名一致 -->
+<mapper namespace="cn.yks.hrmapp.dao.IDepartmentDao">
+    <!--部门信息映射结果-->
+    <resultMap id="departmentResultMap" type="cn.yks.hrmapp.model.Department">
+        <id property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+        <result property="remark" column="REMARK"/>
+    </resultMap>
+
+    <!--sql片段，插入对象key值-->
+    <sql id="key">
+        NAME
+        <trim suffixOverrides="," prefix=",">
+            <if test="remark != null">
+                REMARK,
+            </if>
+        </trim>
+    </sql>
+
+    <!--sql片段，插入对象values值-->
+    <sql id="values">
+        #{name}
+        <trim suffixOverrides="," prefix=",">
+            <if test="remark != null">
+                #{remark},
+            </if>
+        </trim>
+    </sql>
+
+    <!--保存部门信息-->
+    <insert id="saveDepartment" parameterType="cn.yks.hrmapp.model.Department"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dept_info(<include refid="key"/>) VALUES (<include refid="values"/>)
+    </insert>
+
+    <!--更新部门信息-->
+    <update id="updateDepartment" parameterType="cn.yks.hrmapp.model.Department">
+        UPDATE dept_info d
+        <trim prefix="set" suffixOverrides=",">
+            <if test="name != null">
+                d.NAME = #{name},
+            </if>
+            <if test="remark != null">
+                d.REMARK = #{remark},
+            </if>
+        </trim>
+        WHERE d.ID = #{id}
+    </update>
+
+    <!--根据部门id删除部门信息-->
+    <delete id="deleteDepartmentById" parameterType="int">
+        DELETE FROM dept_info
+        WHERE ID = #{id}
+    </delete>
+
+    <!--根据部门id查询部门信息-->
+    <select id="selectDepartmentById" parameterType="int"
+            resultMap="departmentResultMap">
+        SELECT *
+        FROM dept_info
+        WHERE ID = #{id}
+    </select>
+
+    <!--查询所有部门信息-->
+    <select id="selectAllDepartment" resultMap="departmentResultMap">
+        SELECT *
+        FROM dept_info
+    </select>
+
+    <!--统计符合条件的部门数-->
+    <select id="countDepartment" parameterType="map"
+            resultType="int">
+        SELECT count(*)
+        FROM dept_info d
+        <where>
+            <trim suffixOverrides="and">
+                <if test="name != null">
+                    d.NAME = #{name} and
+                </if>
+                <if test="remark != null">
+                    d.REMARK = #{remark} and
+                </if>
+            </trim>
+        </where>
+    </select>
+
+    <!--分页查询部门信息-->
+    <select id="selectDepartmentByPage" parameterType="cn.yks.hrmapp.model.Department"
+            resultMap="departmentResultMap">
+        SELECT *
+        FROM dept_info
+        <where>
+            <trim suffixOverrides="and">
+                <if test="name != null">
+                    d.NAME = #{name} and
+                </if>
+                <if test="remark != null">
+                    d.REMARK = #{remark} and
+                </if>
+            </trim>
+        </where>
+    </select>
+</mapper>
